@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EverGreen — More Trees. Smarter Yangon. | EDUSN Year 7</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --deep:#04110b;--deep2:#071a10;--neon:#8cffae;--accent:#34ff95;
+  --glass:rgba(140,255,174,0.04);--glass-border:rgba(140,255,174,0.1);
+  --text:#e8f5ec;--text-dim:rgba(232,245,236,0.55);--text-muted:rgba(232,245,236,0.3);
+  --radius:20px;--radius-sm:12px;--radius-lg:28px;
+}
+html,body{height:100%;overflow:hidden;background:var(--deep);color:var(--text);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4,h5{font-family:'Syne',sans-serif;font-weight:700;letter-spacing:-0.03em;line-height:1.05}
+a{text-decoration:none;color:inherit;cursor:pointer}
+::selection{background:var(--neon);color:var(--deep)}
+
+#app{height:100vh;width:100vw;position:relative;overflow:hidden}
+.page{position:absolute;top:0;left:0;width:100%;height:100%;overflow-y:auto;overflow-x:hidden;opacity:0;visibility:hidden;z-index:1;background:var(--deep);-webkit-overflow-scrolling:touch}
+.page.active{opacity:1;visibility:visible;z-index:2}
+.page::-webkit-scrollbar{width:4px}
+.page::-webkit-scrollbar-track{background:transparent}
+.page::-webkit-scrollbar-thumb{background:rgba(140,255,174,0.2);border-radius:2px}
+.page-inner{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:100px 24px 100px;position:relative;z-index:2}
+.page-inner-left{align-items:flex-start}
+.page-inner-center{align-items:center;text-align:center}
+.section-inner{max-width:1280px;width:100%;margin:0 auto}
+.section-label{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--neon);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:16px}
+.section-label .dot{width:6px;height:6px;border-radius:50%;background:var(--neon)}
+.section-title{font-size:clamp(2.2rem,5vw,3.8rem);margin-bottom:20px;letter-spacing:-0.04em}
+.section-desc{font-size:clamp(1rem,1.8vw,1.15rem);color:var(--text-dim);max-width:620px;line-height:1.7;font-weight:300}
+.anim-item{opacity:0;transform:translateY(30px)}
+
+#loader{position:fixed;inset:0;z-index:10000;background:var(--deep);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .8s,visibility .8s}
+#loader.hidden{opacity:0;visibility:hidden;pointer-events:none}
+#loader .logo-text{font-family:'Syne',sans-serif;font-size:clamp(2rem,5vw,3.5rem);font-weight:800;color:var(--neon);letter-spacing:-0.04em;opacity:0;transform:translateY(20px)}
+#loader .bar-wrap{width:200px;height:2px;background:rgba(140,255,174,0.1);border-radius:2px;margin-top:32px;overflow:hidden}
+#loader .bar-fill{height:100%;width:0;background:var(--neon);border-radius:2px;box-shadow:0 0 20px var(--neon)}
+#loader .load-percent{font-size:11px;color:var(--text-dim);margin-top:12px;letter-spacing:0.2em;text-transform:uppercase}
+
+#particles{position:fixed;inset:0;z-index:0;pointer-events:none}
+#mouse-glow{position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(140,255,174,0.06) 0%,transparent 70%);pointer-events:none;z-index:1;transform:translate(-50%,-50%)}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:12px 24px;background:rgba(4,17,11,0.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--glass-border)}
+.nav-inner{max-width:1320px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--neon);display:flex;align-items:center;gap:8px;cursor:pointer}
+.nav-logo svg{width:26px;height:26px}
+.nav-links{display:flex;gap:4px;align-items:center}
+.nav-link{font-size:12px;font-weight:500;color:var(--text-dim);transition:all .3s;letter-spacing:0.02em;padding:8px 14px;border-radius:100px;cursor:pointer}
+.nav-link:hover,.nav-link.active{color:var(--neon);text-shadow:0 0 20px rgba(140,255,174,0.3);background:rgba(140,255,174,0.05)}
+.nav-cta{background:var(--neon) !important;color:var(--deep) !important;font-weight:600 !important}
+.nav-cta:hover{box-shadow:0 0 30px rgba(140,255,174,0.4) !important;transform:scale(1.05)}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:8px;z-index:1001}
+.hamburger span{width:24px;height:2px;background:var(--text);border-radius:2px;transition:all .3s}
+.hamburger.active span:nth-child(1){transform:rotate(45deg) translate(5px,5px)}
+.hamburger.active span:nth-child(2){opacity:0}
+.hamburger.active span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px)}
+.mobile-menu{position:fixed;inset:0;background:rgba(4,17,11,0.97);backdrop-filter:blur(30px);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;opacity:0;visibility:hidden;transition:all .4s}
+.mobile-menu.open{opacity:1;visibility:visible}
+.mobile-menu a{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:600;color:var(--text);transition:color .3s;padding:8px;cursor:pointer}
+.mobile-menu a:hover{color:var(--neon)}
+
+footer{position:fixed;bottom:0;left:0;right:0;z-index:900;padding:10px 24px;background:rgba(4,17,11,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--glass-border)}
+.footer-inner{max-width:1320px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.footer-left{display:flex;align-items:center;gap:12px}
+.footer-left .nav-logo{font-size:1rem;margin-bottom:0}
+.footer-left p{font-size:0.72rem;color:var(--text-muted);font-weight:300}
+.footer-links{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.footer-links a{font-size:0.75rem;color:var(--text-muted);transition:color .3s;font-weight:400;white-space:nowrap}
+.footer-links a:hover{color:var(--neon)}
+.footer-sep{width:1px;height:14px;background:var(--glass-border)}
+
+.btn-primary{display:inline-flex;align-items:center;gap:8px;padding:16px 36px;background:var(--neon);color:var(--deep);border-radius:100px;font-weight:600;font-size:14px;border:none;cursor:pointer;transition:all .3s;font-family:'Inter',sans-serif}
+.btn-primary:hover{box-shadow:0 0 40px rgba(140,255,174,0.4);transform:translateY(-2px) scale(1.02)}
+.btn-primary svg{width:18px;height:18px;transition:transform .3s}
+.btn-primary:hover svg{transform:translateX(3px)}
+.btn-secondary{display:inline-flex;align-items:center;gap:8px;padding:16px 36px;background:transparent;color:var(--text);border-radius:100px;font-weight:500;font-size:14px;border:1px solid var(--glass-border);cursor:pointer;transition:all .3s;font-family:'Inter',sans-serif;backdrop-filter:blur(10px)}
+.btn-secondary:hover{border-color:var(--neon);color:var(--neon);box-shadow:0 0 30px rgba(140,255,174,0.1);transform:translateY(-2px)}
+
+#home{background:linear-gradient(135deg,var(--deep) 0%,var(--deep2) 100%)}
+.hero-bg{position:absolute;inset:0;z-index:0}
+.hero-bg img{width:100%;height:100%;object-fit:cover;opacity:0.18;filter:saturate(0.5) brightness(0.35)}
+.hero-gradient{position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,17,11,0.3) 0%,rgba(4,17,11,0.7) 50%,var(--deep) 100%);z-index:1}
+.hero-orb{position:absolute;border-radius:50%;filter:blur(100px);opacity:0.2;z-index:0}
+.hero-orb-1{width:600px;height:600px;background:rgba(52,255,149,0.15);top:-150px;right:-150px;animation:orbFloat 18s ease-in-out infinite}
+.hero-orb-2{width:400px;height:400px;background:rgba(140,255,174,0.08);bottom:-100px;left:-100px;animation:orbFloat 22s ease-in-out infinite reverse}
+@keyframes orbFloat{0%,100%{transform:translate(0,0)}25%{transform:translate(30px,-40px)}50%{transform:translate(-20px,30px)}75%{transform:translate(40px,20px)}}
+.hero-title{font-size:clamp(2.8rem,8vw,6.5rem);font-weight:800;line-height:0.92;letter-spacing:-0.05em;margin-bottom:28px}
+.hero-title .line{display:block;overflow:hidden}
+.hero-title .line-inner{display:block}
+.hero-title .highlight{color:var(--neon);text-shadow:0 0 80px rgba(140,255,174,0.25)}
+.hero-desc{font-size:clamp(1rem,2vw,1.2rem);color:var(--text-dim);max-width:600px;line-height:1.7;font-weight:300;margin-bottom:20px}
+.hero-sub{font-size:0.85rem;color:var(--text-muted);margin-bottom:48px;font-weight:400;letter-spacing:0.05em}
+.hero-buttons{display:flex;gap:16px;flex-wrap:wrap}
+.scroll-cue{position:absolute;bottom:80px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--text-muted);font-size:11px;letter-spacing:0.15em;text-transform:uppercase;animation:cuePulse 2.5s infinite}
+.scroll-cue .cue-line{width:1px;height:30px;background:linear-gradient(to bottom,var(--neon),transparent)}
+@keyframes cuePulse{0%,100%{opacity:1;transform:translateX(-50%) translateY(0)}50%{opacity:0.5;transform:translateX(-50%) translateY(8px)}}
+
+.tree-chain{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+.tree-chain-item{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:100px;background:var(--glass);border:1px solid var(--glass-border);font-size:0.75rem;color:var(--neon);font-weight:500;letter-spacing:0.02em}
+.tree-chain-item .arrow{color:var(--text-muted);font-size:0.7rem}
+.tree-chain-item .tree-emoji{font-size:0.9rem}
+
+.about-intro{max-width:700px;margin-bottom:48px}
+.about-intro p{font-size:1.05rem;color:var(--text-dim);line-height:1.8;font-weight:300;margin-top:16px}
+.about-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:48px}
+.about-card{padding:24px;border-radius:var(--radius);background:var(--glass);border:1px solid var(--glass-border);backdrop-filter:blur(10px);transition:all .4s;cursor:default}
+.about-card:hover{border-color:rgba(140,255,174,0.25);transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,0,0,0.3)}
+.about-card-icon{width:40px;height:40px;border-radius:var(--radius-sm);background:rgba(140,255,174,0.08);display:flex;align-items:center;justify-content:center;margin-bottom:12px;color:var(--neon)}
+.about-card h4{font-size:0.8rem;font-weight:600;color:var(--neon);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;font-family:'Inter',sans-serif}
+.about-card p{font-size:0.9rem;color:var(--text);line-height:1.4;font-weight:400}
+.team-avatars{display:flex;gap:20px;flex-wrap:wrap;justify-content:center}
+.team-member{display:flex;flex-direction:column;align-items:center;gap:6px}
+.team-avatar{width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,rgba(140,255,174,0.2),rgba(52,255,149,0.05));border:1px solid var(--glass-border);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;color:var(--neon);font-size:1.1rem}
+.team-name{font-size:0.8rem;color:var(--text-dim)}
+
+.issues-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.issue-card{padding:24px;border-radius:var(--radius);background:var(--glass);border:1px solid var(--glass-border);backdrop-filter:blur(10px);transition:all .4s;cursor:default;position:relative;overflow:hidden}
+.issue-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--neon),transparent);opacity:0;transition:opacity .4s}
+.issue-card:hover::before{opacity:1}
+.issue-card:hover{border-color:rgba(140,255,174,0.2);transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,0,0,0.3)}
+.issue-icon{font-size:1.6rem;margin-bottom:12px;display:block}
+.issue-card h4{font-size:1rem;margin-bottom:8px;font-weight:600}
+.issue-card p{font-size:0.8rem;color:var(--text-dim);line-height:1.5;font-weight:300;margin-bottom:12px}
+.issue-tree-solution{font-size:0.75rem;color:var(--neon);padding-top:12px;border-top:1px solid var(--glass-border);display:flex;align-items:flex-start;gap:6px;line-height:1.4;font-weight:500}
+.issue-tree-solution::before{content:'🌳';flex-shrink:0;font-size:0.85rem}
+
+.solutions-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.solution-card{padding:24px 20px;border-radius:var(--radius);background:var(--glass);border:1px solid var(--glass-border);backdrop-filter:blur(10px);transition:all .4s;cursor:default;position:relative;overflow:hidden}
+.solution-card::after{content:'';position:absolute;inset:0;border-radius:var(--radius);background:radial-gradient(circle at 50% 0%,rgba(140,255,174,0.06),transparent 70%);opacity:0;transition:opacity .4s}
+.solution-card:hover::after{opacity:1}
+.solution-card:hover{border-color:rgba(140,255,174,0.25);transform:translateY(-4px);box-shadow:0 20px 50px rgba(0,0,0,0.3)}
+.solution-icon{width:48px;height:48px;border-radius:50%;background:rgba(140,255,174,0.08);display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:1.3rem;transition:all .4s;position:relative;z-index:1}
+.solution-card:hover .solution-icon{background:rgba(140,255,174,0.15);box-shadow:0 0 25px rgba(140,255,174,0.2);transform:scale(1.1)}
+.solution-card h4{font-size:0.95rem;margin-bottom:6px;font-weight:600;position:relative;z-index:1}
+.solution-card p{font-size:0.78rem;color:var(--text-dim);line-height:1.5;font-weight:300;position:relative;z-index:1;margin-bottom:10px}
+.solution-benefit{font-size:0.7rem;color:var(--neon);font-weight:500;position:relative;z-index:1;display:flex;align-items:center;gap:4px}
+.solution-benefit::before{content:'✓';font-weight:700}
+
+.future-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.future-card{position:relative;border-radius:var(--radius-lg);overflow:hidden;aspect-ratio:1/1;cursor:default}
+.future-card img{width:100%;height:100%;object-fit:cover;transition:transform .8s cubic-bezier(0.16,1,0.3,1),filter .8s;filter:brightness(0.3) saturate(0.5)}
+.future-card:hover img{transform:scale(1.05);filter:brightness(0.45) saturate(0.8)}
+.future-card .card-overlay{position:absolute;inset:0;background:linear-gradient(180deg,transparent 20%,rgba(4,17,11,0.95) 100%);z-index:1}
+.future-card .card-content{position:absolute;bottom:0;left:0;right:0;padding:24px;z-index:2}
+.future-card .card-tag{display:inline-block;padding:4px 10px;border-radius:100px;background:rgba(140,255,174,0.12);color:var(--neon);font-size:9px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;backdrop-filter:blur(10px)}
+.future-card h3{font-size:1.1rem;margin-bottom:4px}
+.future-card p{font-size:0.75rem;color:var(--text-dim);font-weight:300;line-height:1.4}
+
+.gallery-grid{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:180px;gap:12px}
+.gallery-item{position:relative;border-radius:var(--radius);overflow:hidden;cursor:pointer}
+.gallery-item:nth-child(1){grid-column:span 2;grid-row:span 2}
+.gallery-item:nth-child(5){grid-row:span 2}
+.gallery-item:nth-child(8){grid-column:span 2}
+.gallery-item img{width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(0.16,1,0.3,1);filter:brightness(0.5) saturate(0.7)}
+.gallery-item:hover img{transform:scale(1.06);filter:brightness(0.7) saturate(1)}
+.gallery-item .g-overlay{position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(4,17,11,0.85) 100%);opacity:0;transition:opacity .4s;display:flex;align-items:flex-end;padding:16px}
+.gallery-item:hover .g-overlay{opacity:1}
+.gallery-item .g-overlay span{font-size:0.85rem;font-weight:500;color:var(--neon)}
+
+.ref-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.ref-card{padding:20px;border-radius:var(--radius);background:var(--glass);border:1px solid var(--glass-border);backdrop-filter:blur(10px);transition:all .4s;cursor:default;display:flex;align-items:center;gap:14px}
+.ref-card:hover{border-color:rgba(140,255,174,0.2);transform:translateY(-2px);box-shadow:0 12px 30px rgba(0,0,0,0.3)}
+.ref-icon{width:40px;height:40px;border-radius:var(--radius-sm);background:rgba(140,255,174,0.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--neon)}
+.ref-card h4{font-size:0.85rem;font-weight:600;font-family:'Inter',sans-serif;letter-spacing:0}
+.ref-card p{font-size:0.72rem;color:var(--text-muted);margin-top:2px}
+
+.join-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
+.join-info h3{font-size:1.8rem;margin-bottom:14px}
+.join-info p{color:var(--text-dim);line-height:1.7;font-weight:300;margin-bottom:20px;font-size:0.95rem}
+.pledge-box{padding:24px;border-radius:var(--radius);background:var(--glass);border:1px solid var(--glass-border);margin-bottom:20px}
+.pledge-box h4{font-size:0.95rem;margin-bottom:6px;color:var(--neon);font-family:'Inter',sans-serif;font-weight:600}
+.pledge-box p{font-size:0.85rem;color:var(--text-dim);line-height:1.6;font-weight:300;font-style:italic}
+.contact-form{padding:32px;border-radius:var(--radius-lg);background:var(--glass);border:1px solid var(--glass-border);backdrop-filter:blur(20px)}
+.form-group{position:relative;margin-bottom:18px}
+.form-group label{position:absolute;top:14px;left:14px;font-size:0.85rem;color:var(--text-muted);pointer-events:none;transition:all .3s;font-weight:400}
+.form-group input,.form-group textarea{width:100%;padding:14px;background:rgba(140,255,174,0.03);border:1px solid var(--glass-border);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:0.9rem;outline:none;transition:border-color .3s,box-shadow .3s;resize:none}
+.form-group input:focus,.form-group textarea:focus{border-color:var(--neon);box-shadow:0 0 20px rgba(140,255,174,0.08)}
+.form-group input:focus+label,.form-group input:not(:placeholder-shown)+label,.form-group textarea:focus+label,.form-group textarea:not(:placeholder-shown)+label{top:-8px;left:12px;font-size:0.7rem;color:var(--neon);background:var(--deep2);padding:0 6px}
+.form-group textarea{min-height:100px}
+.form-submit{width:100%;padding:14px;background:var(--neon);color:var(--deep);border:none;border-radius:var(--radius-sm);font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .3s}
+.form-submit:hover{box-shadow:0 0 40px rgba(140,255,174,0.4);transform:translateY(-2px)}
+
+.toast{position:fixed;bottom:60px;right:32px;padding:14px 24px;background:rgba(4,17,11,0.9);border:1px solid var(--glass-border);backdrop-filter:blur(20px);border-radius:var(--radius-sm);color:var(--neon);font-size:0.85rem;font-weight:500;z-index:10001;transform:translateY(100px);opacity:0;transition:all .4s cubic-bezier(0.16,1,0.3,1)}
+.toast.show{transform:translateY(0);opacity:1}
+
+@media(max-width:1024px){.about-grid,.solutions-grid,.future-grid,.ref-grid{grid-template-columns:repeat(2,1fr)}.join-grid{grid-template-columns:1fr;gap:32px}}
+@media(max-width:768px){.nav-links{display:none}.hamburger{display:flex}.issues-grid,.gallery-grid{grid-template-columns:1fr 1fr}.gallery-grid{grid-auto-rows:140px}.gallery-item:nth-child(1){grid-column:span 2;grid-row:span 1}.gallery-item:nth-child(5){grid-row:span 1}.gallery-item:nth-child(8){grid-column:span 1}.about-grid,.solutions-grid,.ref-grid,.future-grid{grid-template-columns:1fr}.page-inner{padding:80px 20px 80px}.footer-links{display:none}.footer-sep{display:none}.tree-chain{gap:6px}.tree-chain-item{font-size:0.7rem;padding:5px 10px}}
+@media(max-width:480px){.issues-grid,.gallery-grid{grid-template-columns:1fr}.gallery-grid{grid-auto-rows:180px}.gallery-item:nth-child(1){grid-column:span 1}}
+</style>
+</head>
+<body>
+
+<div id="loader"><div class="logo-text">EverGreen</div><div class="bar-wrap"><div class="bar-fill"></div></div><div class="load-percent">0%</div></div>
+<canvas id="particles"></canvas>
+<div id="mouse-glow"></div>
+
+<div class="mobile-menu" id="mobileMenu">
+  <a data-target="home">Home</a><a data-target="about">About Us</a><a data-target="issues">Challenges</a><a data-target="solutions">Green Solutions</a><a data-target="future">Future Yangon</a><a data-target="gallery">Gallery</a><a data-target="references">References</a><a data-target="join">Join Us</a>
+</div>
+
+<nav id="navbar"><div class="nav-inner">
+  <div class="nav-logo" data-target="home"><svg viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="12" stroke="#8cffae" stroke-width="1.5"/><path d="M14 6C14 6 8 12 8 16C8 19.3 10.7 22 14 22C17.3 22 20 19.3 20 16C20 12 14 6 14 6Z" fill="#8cffae" fill-opacity="0.3" stroke="#8cffae" stroke-width="1.2"/></svg>EverGreen</div>
+  <div class="nav-links">
+    <span class="nav-link" data-target="home">Home</span><span class="nav-link" data-target="about">About</span><span class="nav-link" data-target="issues">Challenges</span><span class="nav-link" data-target="solutions">Green Solutions</span><span class="nav-link" data-target="future">Future Yangon</span><span class="nav-link" data-target="gallery">Gallery</span><span class="nav-link" data-target="references">References</span><span class="nav-link nav-cta" data-target="join">Join Us</span>
+  </div>
+  <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+</div></nav>
+
+<footer><div class="footer-inner">
+  <div class="footer-left"><div class="nav-logo" data-target="home" style="font-size:0.95rem"><svg viewBox="0 0 28 28" fill="none" width="20" height="20"><circle cx="14" cy="14" r="12" stroke="#8cffae" stroke-width="1.5"/><path d="M14 6C14 6 8 12 8 16C8 19.3 10.7 22 14 22C17.3 22 20 19.3 20 16C20 12 14 6 14 6Z" fill="#8cffae" fill-opacity="0.3" stroke="#8cffae" stroke-width="1.2"/></svg>EverGreen</div><span class="footer-sep"></span><p>© EverGreen 2026 · EDUSN Thingangyun · Yangon, Myanmar</p></div>
+  <div class="footer-links"><a data-target="about">About</a><a data-target="issues">Challenges</a><a data-target="solutions">Solutions</a><a data-target="gallery">Gallery</a><span class="footer-sep"></span><a href="https://www.unep.org" target="_blank" rel="noopener">UNEP</a><a href="https://www.wwf.org" target="_blank" rel="noopener">WWF</a></div>
+</div></footer>
+
+<div id="app">
+
+  <!-- ==================== HOME ==================== -->
+  <section id="home" class="page active">
+    <div class="hero-bg"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Shwedagon_Pagoda_in_Yangon%2C_Myanmar.jpg/1280px-Shwedagon_Pagoda_in_Yangon%2C_Myanmar.jpg" alt="Shwedagon Pagoda Yangon"><div class="hero-gradient"></div></div>
+    <div class="hero-orb hero-orb-1"></div><div class="hero-orb hero-orb-2"></div>
+    <div class="page-inner page-inner-center"><div class="section-inner" style="display:flex;flex-direction:column;align-items:center">
+      <div class="anim-item hero-badge" style="display:inline-flex;align-items:center;gap:8px;padding:8px 20px;border-radius:100px;background:var(--glass);border:1px solid var(--glass-border);font-size:11px;font-weight:600;color:var(--neon);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:32px;backdrop-filter:blur(10px)"><span style="width:6px;height:6px;border-radius:50%;background:var(--neon);box-shadow:0 0 10px var(--neon)"></span> Urban Greening for Yangon</div>
+      <h1 class="hero-title anim-item"><span class="line"><span class="line-inner">More Trees.</span></span><span class="line"><span class="line-inner"><span class="highlight">Smarter</span> Cities.</span></span><span class="line"><span class="line-inner">Better Futures.</span></span></h1>
+      <p class="hero-desc anim-item">How can planting more trees and increasing green spaces transform Yangon into a smarter, greener, healthier, and more sustainable city?</p>
+      <p class="hero-sub anim-item">By EverGreen · EDUSN Thingangyun Campus</p>
+      <div class="hero-buttons anim-item">
+        <button class="btn-primary" data-target="issues">The Challenges <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+        <button class="btn-secondary" data-target="solutions">Green Solutions</button>
+      </div>
+      <div class="tree-chain anim-item">
+        <span class="tree-chain-item"><span class="tree-emoji">🌳</span> More Trees</span>
+        <span class="tree-chain-item"><span class="arrow">→</span> Cleaner Air</span>
+        <span class="tree-chain-item"><span class="arrow">→</span> Cooler Cities</span>
+        <span class="tree-chain-item"><span class="arrow">→</span> Less Flooding</span>
+        <span class="tree-chain-item"><span class="arrow">→</span> Better Future</span>
+      </div>
+    </div></div>
+    <div class="scroll-cue">Scroll<span class="cue-line"></span></div>
+  </section>
+
+  <!-- ==================== ABOUT ==================== -->
+  <section id="about" class="page"><div class="page-inner page-inner-left"><div class="section-inner">
+    <span class="section-label anim-item"><span class="dot"></span> About Us</span>
+    <h2 class="section-title anim-item">Who We Are</h2>
+    <div class="about-intro anim-item"><p>We are <strong style="color:var(--neon)">EverGreen</strong>, a group of Year 7 students from EDUSN Thingangyun Campus. Our project explores how planting more trees, creating more green spaces, and using Smart City ideas can help transform Yangon into a cleaner, healthier, and more sustainable city. Through this website, we aim to raise awareness and inspire our community to take action for a greener future.</p></div>
+    <div class="about-grid">
+      <div class="about-card anim-item"><div class="about-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg></div><h4>School</h4><p>EDUSN Thingangyun Campus</p></div>
+      <div class="about-card anim-item"><div class="about-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 4 3 6 3s6-1 6-3v-5"/></svg></div><h4>Grade</h4><p>Year 7</p></div>
+      <div class="about-card anim-item"><div class="about-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/></svg></div><h4>Group</h4><p>EverGreen</p></div>
+      <div class="about-card anim-item"><div class="about-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></div><h4>Mission</h4><p>Exploring how trees and green spaces can transform Yangon.</p></div>
+      <div class="about-card anim-item"><div class="about-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div><h4>Vision</h4><p>A greener, smarter, and healthier Yangon for future generations.</p></div>
+      <div class="about-card anim-item"><div class="about-card-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h4>Values</h4><p>Awareness, Responsibility, Innovation, Positive Change</p></div>
+    </div>
+    <div style="text-align:center;margin-top:16px"><span class="section-label anim-item" style="justify-content:center"><span class="dot"></span> Our Team</span><div class="team-avatars anim-item"><div class="team-member"><div class="team-avatar">I</div><span class="team-name">Iris</span></div><div class="team-member"><div class="team-avatar">A</div><span class="team-name">Aria</span></div><div class="team-member"><div class="team-avatar">M</div><span class="team-name">Marco</span></div><div class="team-member"><div class="team-avatar">R</div><span class="team-name">Ren</span></div></div></div>
+  </div></div></section>
+
+  <!-- ==================== CHALLENGES ==================== -->
+  <section id="issues" class="page"><div class="page-inner page-inner-left"><div class="section-inner">
+    <span class="section-label anim-item"><span class="dot"></span> Urban Challenges</span>
+    <h2 class="section-title anim-item">Challenges Facing<br>Yangon Today</h2>
+    <p class="section-desc anim-item" style="margin-bottom:40px">Yangon is rapidly developing, but urban growth has reduced natural green spaces. This creates serious problems for our health, environment, and quality of life.</p>
+    <div class="issues-grid">
+      <div class="issue-card anim-item"><span class="issue-icon">🏙️</span><h4>Lack of Green Spaces</h4><p>Expansion of buildings and roads has replaced trees and parks. Many neighborhoods have limited public parks and fewer trees than before.</p><div class="issue-tree-solution">Trees provide shade, cleaner air, and cooler neighborhoods for communities.</div></div>
+      <div class="issue-card anim-item"><span class="issue-icon">🏭</span><h4>Air Pollution</h4><p>Traffic congestion, vehicle emissions, and industrial activities severely degrade Yangon's air quality, posing serious health risks to citizens.</p><div class="issue-tree-solution">Trees naturally filter pollutants and produce oxygen, improving the air we breathe.</div></div>
+      <div class="issue-card anim-item"><span class="issue-icon">🌡️</span><h4>Urban Heat</h4><p>Concrete and asphalt absorb and trap heat. Without enough tree cover, Yangon's neighborhoods are becoming significantly hotter.</p><div class="issue-tree-solution">Tree canopies provide natural shade and cool the air through evapotranspiration.</div></div>
+      <div class="issue-card anim-item"><span class="issue-icon">🦜</span><h4>Loss of Biodiversity</h4><p>Fewer trees mean fewer birds, insects, and pollinators. Habitat loss is threatening Yangon's urban wildlife and ecosystems.</p><div class="issue-tree-solution">Planting native trees restores habitats and brings wildlife back to the city.</div></div>
+      <div class="issue-card anim-item"><span class="issue-icon">🌧️</span><h4>Flooding</h4><p>During the rainy season, rainwater runoff overwhelms drainage. Without natural absorption from trees and soil, flooding worsens.</p><div class="issue-tree-solution">Tree roots absorb water and green spaces reduce runoff, preventing floods.</div></div>
+    </div>
+  </div></div></section>
+
+  <!-- ==================== SOLUTIONS ==================== -->
+  <section id="solutions" class="page"><div class="page-inner page-inner-left"><div class="section-inner">
+    <span class="section-label anim-item"><span class="dot"></span> Green Solutions</span>
+    <h2 class="section-title anim-item">Building a Greener<br>Yangon</h2>
+    <p class="section-desc anim-item" style="margin-bottom:40px">Trees and green spaces are the foundation of a smarter, healthier city. Here is how we can use nature and technology together to transform Yangon.</p>
+    <div class="solutions-grid">
+      <div class="solution-card anim-item"><div class="solution-icon">🌳</div><h4>Tree Planting Programs</h4><p>Organized campaigns to plant thousands of native trees across Yangon's streets, schools, and neighborhoods.</p><div class="solution-benefit">Cleaner air, more oxygen, cooler temperatures, better biodiversity</div></div>
+      <div class="solution-card anim-item"><div class="solution-icon">🏞️</div><h4>Smart Urban Parks</h4><p>Parks with solar-powered lighting, smart irrigation systems, digital information boards, and community spaces.</p><div class="solution-benefit">Efficient green spaces that educate and connect communities</div></div>
+      <div class="solution-card anim-item"><div class="solution-icon">🏫</div><h4>Green School Campaigns</h4><p>Students planting trees, maintaining gardens, promoting awareness, and participating in environmental projects.</p><div class="solution-benefit">Youth empowerment and hands-on environmental education</div></div>
+      <div class="solution-card anim-item"><div class="solution-icon">🌱</div><h4>Vertical Gardens</h4><p>Plant-covered walls and green facades that bring nature into dense urban areas where space is limited.</p><div class="solution-benefit">Urban greening without requiring ground-level space</div></div>
+      <div class="solution-card anim-item"><div class="solution-icon">🏡</div><h4>Green Rooftops</h4><p>Gardens on building rooftops that reduce temperatures, improve air quality, and increase biodiversity.</p><div class="solution-benefit">Temperature reduction, improved air quality, more habitat</div></div>
+      <div class="solution-card anim-item"><div class="solution-icon">📡</div><h4>Smart Tree Monitoring</h4><p>Sensors that monitor tree growth, soil moisture, and tree health — connecting sustainability with Smart City innovation.</p><div class="solution-benefit">Data-driven tree care and smarter urban forest management</div></div>
+    </div>
+  </div></div></section>
+
+  <!-- ==================== FUTURE YANGON 2040 ==================== -->
+  <section id="future" class="page"><div class="page-inner page-inner-left"><div class="section-inner">
+    <span class="section-label anim-item"><span class="dot"></span> Future Vision</span>
+    <h2 class="section-title anim-item">Our Vision for<br>Yangon 2040</h2>
+    <p class="section-desc anim-item" style="margin-bottom:12px">Imagine a Yangon where nature and technology work together to create a healthier, more beautiful, and more sustainable city for everyone.</p>
+    <p class="anim-item" style="font-size:0.7rem;color:var(--text-muted);margin-bottom:32px;font-style:italic">* Visualizations inspired by global eco-city concepts and smart green architecture.</p>
+    <div class="future-grid">
+      <div class="future-card anim-item"><img src="https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=600&q=80" alt="Future Tree-Lined Streets"><div class="card-overlay"></div><div class="card-content"><span class="card-tag">Streets</span><h3>Streets Lined with Trees</h3><p>Shady, beautiful roads in every district.</p></div></div>
+      <div class="future-card anim-item"><img src="https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=600&q=80" alt="Future Smart Parks"><div class="card-overlay"></div><div class="card-content"><span class="card-tag">Technology</span><h3>Smart Parks</h3><p>Connected green spaces with smart technology.</p></div></div>
+      <div class="future-card anim-item"><img src="https://images.unsplash.com/photo-1449844908441-8829872d2607?w=600&q=80" alt="Future Green Neighborhoods"><div class="card-overlay"></div><div class="card-content"><span class="card-tag">Community</span><h3>Green Neighborhoods</h3><p>Every area has parks and gardens nearby.</p></div></div>
+      <div class="future-card anim-item"><img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600&q=80" alt="Future Thriving Biodiversity"><div class="card-overlay"></div><div class="card-content"><span class="card-tag">Nature</span><h3>Thriving Biodiversity</h3><p>Birds, butterflies, and wildlife across the city.</p></div></div>
+      <div class="future-card anim-item"><img src="https://images.unsplash.com/photo-1518173946687-a1e0e2a2f635?w=600&q=80" alt="Future Cleaner Air"><div class="card-overlay"></div><div class="card-content"><span class="card-tag">Health</span><h3>Cleaner Air</h3><p>Trees filtering pollutants for healthier breathing.</p></div></div>
+      <div class="future-card anim-item"><img src="https://images.unsplash.com/photo-1501854140801-50d01698950b?w=600&q=80" alt="Future Green Corridors"><div class="card-overlay"></div><div class="card-content"><span class="card-tag">Network</span><h3>Green Corridors</h3><p>Linked greenways connecting communities.</p></div></div>
+      <div class="future-card anim-item"><img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=600&q=80" alt="Future Reduced Flooding"><div class="card-overlay"></div><div class="card-content"><span class="card-tag">Safety</span><h3>Reduced Flooding</h3><p>Trees and soil absorbing rainy season water.</p></div></div>
+      <div class="future-card anim-item"><img src="https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=600&q=80" alt="Future Beautiful Public Spaces"><div class="card-overlay"></div><div class="card-content"><span class="card-tag">People</span><h3>Beautiful Public Spaces</h3><p>A more livable, attractive Yangon for all.</p></div></div>
+    </div>
+  </div></div></section>
+
+  <!-- ==================== GALLERY ==================== -->
+  <section id="gallery" class="page"><div class="page-inner page-inner-left"><div class="section-inner">
+    <span class="section-label anim-item"><span class="dot"></span> Gallery</span>
+    <h2 class="section-title anim-item">Yangon's Greenery<br>&amp; Beauty</h2>
+    <p class="section-desc anim-item" style="margin-bottom:40px">A visual look at the green spaces, trees, and nature that make Yangon beautiful — and the potential for even more.</p>
+    <div class="gallery-grid">
+      <div class="gallery-item anim-item"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Shwedagon_Pagoda_in_Yangon%2C_Myanmar.jpg/1280px-Shwedagon_Pagoda_in_Yangon%2C_Myanmar.jpg" alt="Shwedagon Pagoda"><div class="g-overlay"><span>Shwedagon Pagoda</span></div></div>
+      <div class="gallery-item anim-item"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Kandawgyi_Lake_Yangon.jpg/800px-Kandawgyi_Lake_Yangon.jpg" alt="Kandawgyi Lake"><div class="g-overlay"><span>Kandawgyi Lake</span></div></div>
+      <div class="gallery-item anim-item"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Yangon_street.jpg/800px-Yangon_street.jpg" alt="Yangon Streets"><div class="g-overlay"><span>Yangon's Green Streets</span></div></div>
+      <div class="gallery-item anim-item"><img src="https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=600&q=80" alt="Tree-Lined Avenues"><div class="g-overlay"><span>Tree-Lined Avenues</span></div></div>
+      <div class="gallery-item anim-item"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Yangon_skyline.jpg/800px-Yangon_skyline.jpg" alt="Downtown Yangon"><div class="g-overlay"><span>Downtown Skyline</span></div></div>
+      <div class="gallery-item anim-item"><img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=600&q=80" alt="Lush Greenery"><div class="g-overlay"><span>Lush Greenery</span></div></div>
+      <div class="gallery-item anim-item"><img src="https://images.unsplash.com/photo-1518173946687-a1e0e2a2f635?w=600&q=80" alt="Sunlight Through Trees"><div class="g-overlay"><span>Sunlight Through Trees</span></div></div>
+      <div class="gallery-item anim-item"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Botahtaung_Pagoda%2C_Yangon.jpg/1280px-Botahtaung_Pagoda%2C_Yangon.jpg" alt="Botahtaung Pagoda"><div class="g-overlay"><span>Botahtaung Pagoda</span></div></div>
+    </div>
+  </div></div></section>
+
+  <!-- ==================== REFERENCES ==================== -->
+  <section id="references" class="page"><div class="page-inner page-inner-left"><div class="section-inner">
+    <span class="section-label anim-item"><span class="dot"></span> References</span>
+    <h2 class="section-title anim-item">Sources &amp; Research</h2>
+    <p class="section-desc anim-item" style="margin-bottom:40px">The information on this website is sourced from leading environmental, scientific, and urban development organizations.</p>
+    <div class="ref-grid">
+      <div class="ref-card anim-item"><div class="ref-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div><div><h4>UNEP</h4><p>United Nations Environment Programme</p></div></div>
+      <div class="ref-card anim-item"><div class="ref-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div><h4>WWF</h4><p>World Wildlife Fund</p></div></div>
+      <div class="ref-card anim-item"><div class="ref-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><div><h4>WHO</h4><p>World Health Organization</p></div></div>
+      <div class="ref-card anim-item"><div class="ref-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div><div><h4>National Geographic</h4><p>Environmental Research</p></div></div>
+      <div class="ref-card anim-item"><div class="ref-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10"/><path d="M12 2a15.3 15.3 0 0 0-4 10 15.3 15.3 0 0 0 4 10"/></svg></div><div><h4>NASA Climate</h4><p>Climate Change Evidence</p></div></div>
+      <div class="ref-card anim-item"><div class="ref-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div><h4>UN SDGs</h4><p>Sustainable Development Goals</p></div></div>
+      <div class="ref-card anim-item"><div class="ref-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 22V6l9-4 9 4v16"/><path d="M9 12h6"/><path d="M9 16h6"/></svg></div><div><h4>EPA</h4><p>Environmental Protection Agency</p></div></div>
+    </div>
+  </div></div></section>
+
+  <!-- ==================== JOIN ==================== -->
+  <section id="join" class="page"><div class="page-inner page-inner-left"><div class="section-inner">
+    <span class="section-label anim-item"><span class="dot"></span> Get Involved</span>
+    <h2 class="section-title anim-item">Join The Movement</h2>
+    <div class="join-grid" style="margin-top:32px">
+      <div class="join-info">
+        <h3 class="anim-item">Plant a Tree. Change a City.</h3>
+        <p class="anim-item">Every tree planted is a step toward a smarter, greener Yangon. Whether you're a student, teacher, or citizen — you have the power to make a difference. Start by planting one tree.</p>
+        <div class="pledge-box anim-item">
+          <h4>🌿 The EverGreen Pledge</h4>
+          <p>"I promise to support tree planting, protect green spaces, and advocate for a greener, smarter, and more sustainable Yangon for future generations."</p>
+        </div>
+        <div class="tree-chain anim-item" style="margin-top:16px">
+          <span class="tree-chain-item"><span class="tree-emoji">🌳</span> More Trees</span>
+          <span class="tree-chain-item"><span class="arrow">→</span> Cleaner Air</span>
+          <span class="tree-chain-item"><span class="arrow">→</span> Cooler City</span>
+          <span class="tree-chain-item"><span class="arrow">→</span> Better Future</span>
+        </div>
+      </div>
+      <form class="contact-form anim-item" id="contactForm" onsubmit="handleSubmit(event)">
+        <div class="form-group"><input type="text" id="fname" placeholder=" " required><label for="fname">Your Name</label></div>
+        <div class="form-group"><input type="email" id="femail" placeholder=" " required><label for="femail">Email Address</label></div>
+        <div class="form-group"><textarea id="fmessage" placeholder=" " rows="4" required></textarea><label for="fmessage">Your Message / Pledge for Yangon</label></div>
+        <button type="submit" class="form-submit">Join The Movement 🌳</button>
+      </form>
+    </div>
+  </div></div></section>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){const loader=document.getElementById('loader');const barFill=loader.querySelector('.bar-fill');const percent=loader.querySelector('.load-percent');const logoText=loader.querySelector('.logo-text');let progress=0;gsap.to(logoText,{opacity:1,y:0,duration:0.8,ease:'power2.out',delay:0.2});const interval=setInterval(()=>{progress+=Math.random()*18;if(progress>=100){progress=100;clearInterval(interval);setTimeout(()=>{gsap.to(loader,{opacity:0,duration:0.6,onComplete:()=>{loader.classList.add('hidden');initSPA();animatePageIn('home')}});},300);}barFill.style.width=progress+'%';percent.textContent=Math.round(progress)+'%';},100);})();
+(function(){const canvas=document.getElementById('particles');const ctx=canvas.getContext('2d');let ps=[],w,h;function resize(){w=canvas.width=window.innerWidth;h=canvas.height=window.innerHeight}resize();window.addEventListener('resize',resize);class P{constructor(){this.reset()}reset(){this.x=Math.random()*w;this.y=Math.random()*h;this.s=Math.random()*1.5+0.5;this.sx=(Math.random()-0.5)*0.2;this.sy=(Math.random()-0.5)*0.2;this.o=Math.random()*0.3+0.05}update(){this.x+=this.sx;this.y+=this.sy;if(this.x<0||this.x>w||this.y<0||this.y>h)this.reset()}draw(){ctx.beginPath();ctx.arc(this.x,this.y,this.s,0,Math.PI*2);ctx.fillStyle=`rgba(140,255,174,${this.o})`;ctx.fill()}}for(let i=0;i<40;i++)ps.push(new P());function a(){ctx.clearRect(0,0,w,h);ps.forEach(p=>{p.update();p.draw()});requestAnimationFrame(a)}a()})();
+(function(){const g=document.getElementById('mouse-glow');let mx=0,my=0,cx=0,cy=0;document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY});function l(){cx+=(mx-cx)*0.08;cy+=(my-cy)*0.08;g.style.left=cx+'px';g.style.top=cy+'px';requestAnimationFrame(l)}l()})();
+
+let currentPage='home';let isAnimating=false;const pages=document.querySelectorAll('.page');
+function updateNav(id){document.querySelectorAll('.nav-link').forEach(l=>{l.classList.toggle('active',l.dataset.target===id)})}
+function goToPage(targetId){if(isAnimating||targetId===currentPage)return;const currentEl=document.getElementById(currentPage);const nextEl=document.getElementById(targetId);if(!nextEl)return;isAnimating=true;updateNav(targetId);const currentIndex=Array.from(pages).indexOf(currentEl);const nextIndex=Array.from(pages).indexOf(nextEl);const direction=nextIndex>currentIndex?1:-1;gsap.set(nextEl,{visibility:'visible',zIndex:3});nextEl.scrollTop=0;const tl=gsap.timeline({onComplete:()=>{currentEl.classList.remove('active');gsap.set(currentEl,{visibility:'hidden',zIndex:1,opacity:0});nextEl.classList.add('active');gsap.set(nextEl,{zIndex:2});currentPage=targetId;history.replaceState(null,null,'#'+targetId);isAnimating=false;animatePageIn(targetId);}});tl.to(currentEl,{opacity:0,y:-30*direction,scale:0.98,duration:0.4,ease:'power2.in'});tl.fromTo(nextEl,{opacity:0,y:40*direction,scale:0.98},{opacity:1,y:0,scale:1,duration:0.5,ease:'power2.out'},'-=0.15');}
+
+function animatePageIn(id){const page=document.getElementById(id);const items=page.querySelectorAll('.anim-item');gsap.set(items,{opacity:0,y:30});gsap.to(items,{opacity:1,y:0,duration:0.7,stagger:0.06,ease:'power2.out',delay:0.1});}
+
+function initSPA(){
+  document.querySelectorAll('[data-target]').forEach(el=>{el.addEventListener('click',e=>{e.preventDefault();goToPage(el.dataset.target);closeMobile()});});
+  window.addEventListener('wheel',e=>{if(isAnimating)return;const ap=document.getElementById(currentPage);const isScrollable=ap.scrollHeight>ap.clientHeight+2;if(isScrollable){const atTop=ap.scrollTop<=1;const atBottom=ap.scrollTop+ap.clientHeight>=ap.scrollHeight-2;if(e.deltaY>0&&!atBottom)return;if(e.deltaY<0&&!atTop)return;}const ids=Array.from(pages).map(p=>p.id);const ci=ids.indexOf(currentPage);if(e.deltaY>0&&ci<pages.length-1)goToPage(ids[ci+1]);else if(e.deltaY<0&&ci>0)goToPage(ids[ci-1]);},{passive:true});
+  let ty=0;window.addEventListener('touchstart',e=>{ty=e.touches[0].clientY},{passive:true});window.addEventListener('touchend',e=>{if(isAnimating)return;const d=ty-e.changedTouches[0].clientY;if(Math.abs(d)<50)return;const ap=document.getElementById(currentPage);const isScrollable=ap.scrollHeight>ap.clientHeight+2;if(isScrollable){const atTop=ap.scrollTop<=1;const atBottom=ap.scrollTop+ap.clientHeight>=ap.scrollHeight-2;if(d>0&&!atBottom)return;if(d<0&&!atTop)return;}const ids=Array.from(pages).map(p=>p.id);const ci=ids.indexOf(currentPage);if(d>0&&ci<pages.length-1)goToPage(ids[ci+1]);else if(d<0&&ci>0)goToPage(ids[ci-1]);},{passive:true});
+  window.addEventListener('keydown',e=>{if(isAnimating)return;const ids=Array.from(pages).map(p=>p.id);const ci=ids.indexOf(currentPage);if(e.key==='ArrowDown'||e.key==='PageDown'){e.preventDefault();if(ci<pages.length-1)goToPage(ids[ci+1])}if(e.key==='ArrowUp'||e.key==='PageUp'){e.preventDefault();if(ci>0)goToPage(ids[ci-1])}});
+  const hash=window.location.hash.substring(1);if(hash&&document.getElementById(hash)){currentPage=hash;pages.forEach(p=>p.classList.remove('active'));document.getElementById(hash).classList.add('active');updateNav(hash)}else{updateNav('home')}
+}
+
+function toggleMobile(){document.getElementById('hamburger').classList.toggle('active');document.getElementById('mobileMenu').classList.toggle('open')}
+function closeMobile(){document.getElementById('hamburger').classList.remove('active');document.getElementById('mobileMenu').classList.remove('open')}
+document.getElementById('hamburger').addEventListener('click',toggleMobile);
+
+function handleSubmit(e){e.preventDefault();const toast=document.getElementById('toast');toast.textContent='🌳 Thank you! Together we can build a greener Yangon.';toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),4000);e.target.reset();}
+</script>
+</body>
+</html>
